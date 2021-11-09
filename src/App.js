@@ -12,6 +12,7 @@ import DateSelector from './components/DateSelector';
 import WeekDays from './components/WeekDays';
 import DatesPeriod from './components/DatesPeriod';
 import Polipop from 'polipop';
+import DatePickerMobile from './components/DatePickerMobile';
 import 'polipop/dist/css/polipop.core.min.css';
 import 'polipop/dist/css/polipop.default.min.css';
 import 'react-dates/lib/css/_datepicker.css';
@@ -45,6 +46,7 @@ class App extends Component {
 			nextMonthDays: null,
 			createdAt: moment(),
     		calendarFocused: false,
+			isShowMobileDatepicker: false,
 			today: dayjs().format("YYYY-MM-DD"),
 			days: null,
 			carPrice: null,
@@ -179,6 +181,8 @@ class App extends Component {
 	
 				infoBooked.push(infoItem[0]);
 			});
+
+			console.log(infoBooked)
 		}
 
 		this.setState({
@@ -195,6 +199,18 @@ class App extends Component {
 		})
 	}
 
+	onDatesChangeMobile = (startDate, endDate) => {
+		this.setState({ startDate, endDate, isShowMobileDatepicker: false });
+	}
+
+	onClickDate = () => {
+		this.setState({isShowMobileDatepicker: true})
+	}
+
+	onReset = () => {
+		this.setState({isShowMobileDatepicker: false})
+	}
+
 	initHoldInfo() {
 		const holdPerDate = this.state.carsData.holdPerDate;
 		const dateSelected = moment(this.state.selected, 'YYYY-MM-DD').format('YYYY-MM-DD');
@@ -204,14 +220,14 @@ class App extends Component {
 		if (holdId) {
 			holdId.map((id) => {
 				const infoItem = this.state.carsData.holdList.filter(el => el.id === id);
-	
+
 				infoBooked.push(infoItem[0]);
 			});
 		}
 
 		this.setState({
 			choicePeriod: null,
-			holdId: holdId[0] ? holdId : null,
+			holdId: holdId ? holdId : null,
 			infoBooked: infoBooked.length > 0 ? infoBooked : null
 		})
 	}
@@ -260,6 +276,7 @@ class App extends Component {
 					const hold = true;
 
 					_this.getCarsData(hold);
+					_this.setState({selected: null})
 					polipop.add({
 						content: res.data.message[0] ? res.data.message[0] : 'Success',
 						type: 'success',
@@ -290,7 +307,7 @@ class App extends Component {
 			}).then(function(res) {	
 				if (res.data.isSuccess) {
 					_this.getCarsData();
-					_this.setState({ holdId: null, infoBooked: info && info.length > 0 ? info : null });
+					_this.setState({ holdId: null, selected: null, infoBooked: info && info.length > 0 ? info : null });
 					polipop.add({
 						content: res.data.message[0] ? res.data.message[0] : 'Unavailability successfully removed.',
 						type: 'success',
@@ -311,7 +328,7 @@ class App extends Component {
 	getCarsData(hold) {
 		const _this = this;
 
-		// fetch('https://tachki.wvdev.com.ua/dev/calendar/json.php')
+		// fetch('https://market.wvdev.com.ua/dev/calendar/json.php')
 		// 	.then((res) => {
 		// 		return res.json()
 		// 	})
@@ -360,6 +377,12 @@ class App extends Component {
 	render() {
 		return (
 			<div className="calendar-view">
+				<div className="calendar-view__header d-xl-none mb-4 pb-3">
+					<div className="calendar-sidebar__title">Календарь</div>
+					<div className="calendar-sidebar__text">
+						Для вашего удобства, блокируйте те дни, когда ваш автомобиль недоступен. В эти дни Гости не смогут забронировать ваш автомобиль для своих поездок.
+					</div>
+				</div>
 				<div className="calendar-month">
 					<div className="calendar-month-header">
 						<DateIndicator 
@@ -401,7 +424,7 @@ class App extends Component {
 									<div className="day-info__icon-item"></div>
 									Забронировано
 								</div>
-								<div className="day-info__item day-info__item--unavailable d-flex align-items-center ml-5">
+								<div className="day-info__item day-info__item--unavailable d-flex align-items-center ms-4">
 									<div className="day-info__icon-item"></div>
 									Недоступно
 								</div>
@@ -409,9 +432,9 @@ class App extends Component {
 						</div>
 					}
 				</div>
-				<div className="calendar-sidebar">
+				<div className={this.state.selected ? 'calendar-sidebar is-open-sidebar' : 'calendar-sidebar'}>
 					{!this.state.selected && !this.state.choicePeriod &&
-						<div>
+						<div className="d-none d-xl-block">
 							<div className="calendar-sidebar__title">Календарь</div>
 							<div className="calendar-sidebar__text">
 								Для вашего удобства, блокируйте те дни, когда ваш автомобиль недоступен. В эти дни Гости не смогут забронировать ваш автомобиль для своих поездок.
@@ -452,14 +475,18 @@ class App extends Component {
 									Set a custom price to override your standard pricing settings.
 								</p>
 							</div> */}
-							<div className="calendar-sidebar__info mb-4 pb-2">
-								<div className="d-flex justify-content-between mb-2">
-									<b>Недоступно</b>
-								</div>
-								<p className="mb-0">
-									Установите недоступность вашего автомобиля, чтобы блокировать бронирования в эти периоды.
-								</p>
-
+							<div className="calendar-sidebar__info mb-4">
+								{!this.state.infoBooked &&
+									<div>
+										<div className="d-flex justify-content-between mb-2">
+											<b>Недоступно</b>
+										</div>
+										<p className="mb-0">
+											Установите недоступность вашего автомобиля, чтобы блокировать бронирования в эти периоды.
+										</p>
+									</div>
+								}
+								
 								{this.state.infoBooked && this.state.infoBooked.map((item) => {
 									return (
 										<div key={item.id} className="date-remove d-flex justify-content-between mt-3 mb-3">
@@ -467,7 +494,7 @@ class App extends Component {
 												{item.type === 'order' &&
 													<div className="date-selected-info__item">
 														<span>Заказ №</span>
-														{item.id}
+														<a href={item.url}>{item.id}</a>
 													</div>
 												}
 												<div className="date-selected-info__item">
@@ -486,20 +513,36 @@ class App extends Component {
 									);
 								})}
 
-								<div className="d-flex justify-content-end mt-2">
-									<div className="button-link" onClick={() => {
-										this.setState({choicePeriod: true})
-									}}>+ Добавьте недоступный период</div>
-								</div>
+								{!this.state.infoBooked &&
+									<div className="d-flex justify-content-end mt-2">
+										<div className="button-link" onClick={() => {
+											this.setState({choicePeriod: true})
+										}}>+ Добавьте недоступный период</div>
+									</div>
+								}
 							</div>
-							<div className="calendar-sidebar__info">
-								<div className="d-flex justify-content-between mb-2">
-									<b>Поездки</b>
+
+							{this.state.infoBooked && this.state.infoBooked.length > 0 && this.state.infoBooked[0].type == 'order'
+								?
+								<div className="calendar-sidebar__info">
+									<div className="d-flex justify-content-between mb-2">
+										<b>Поездки</b>
+									</div>
+									<p className="mb-0">
+										Кликните на номер заказа чтобы увидеть детали поездки
+									</p>
 								</div>
-								<p className="mb-0">
-									У вас нет бронирований в этот день.
-								</p>
-							</div>
+								
+								: <div className="calendar-sidebar__info">
+									<div className="d-flex justify-content-between mb-2">
+										<b>Поездки</b>
+									</div>
+									<p className="mb-0">
+										У вас нет бронирований в этот день.
+									</p>
+								</div>
+							}	
+							
 							{/* <SingleDatePicker
 								date={this.state.createdAt} 
 								onDateChange={this.onDateChange}
@@ -528,6 +571,7 @@ class App extends Component {
 								startDateId="start-date"
 								endDateId="end-date"
 								mode="start"
+								onClickDate={this.onClickDate}
 								timeArray={this.state.timeArray}
 								startDate={this.state.startDate}
 								endDate={this.state.endDate}
@@ -541,6 +585,7 @@ class App extends Component {
 								startDateId="start-date-2"
 								endDateId="end-date-2"
 								mode="end"
+								onClickDate={this.onClickDate}
 								timeArray={this.state.timeArray}
 								startDate={this.state.startDate}
 								endDate={this.state.endDate}
@@ -549,7 +594,17 @@ class App extends Component {
 								onDatesChange={this.onDatesChange}
 							/>
 
-							<div className="mt-5">
+
+							{this.state.startDate && this.state.isShowMobileDatepicker &&
+								<DatePickerMobile
+									onReset={this.onReset}
+									startDate={this.state.startDate}
+									endDate={this.state.endDate}
+									onDatesChangeMobile={this.onDatesChangeMobile}
+								/>
+							}
+
+							<div className="mt-4">
 								<button type="button" disabled={this.state.isLoading} className="btn btn-default has-ripple" onClick={this.saveDates}>
 									Добавить
 									{this.state.isLoading &&

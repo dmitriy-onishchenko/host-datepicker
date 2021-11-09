@@ -5,3 +5,8 @@
   height: 100%;
   overflow: hidden;
 }
+@media (max-width: 1199px) {
+  .wraps#content {
+    z-index: 4;
+  }
+}

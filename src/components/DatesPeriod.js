@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import 'react-dates/initialize';
 import moment from 'moment';
 import 'moment/locale/ru';
+import { isMobile } from "react-device-detect";
 import { DateRangePicker, isInclusivelyAfterDay } from 'react-dates';
 import 'react-dates/lib/css/_datepicker.css';
 import './style.css';
@@ -28,7 +29,7 @@ class DatesPeriod extends Component {
     }
 
     render() {
-        const {label, startDateId, endDateId, startDate, endDate, onDatesChange, mode, timeArray, timeStart, timeEnd, onChangeTime} = this.props;
+        const {label, startDateId, endDateId, startDate, endDate, onDatesChange, mode, timeArray, timeStart, timeEnd, onChangeTime, onClickDate} = this.props;
 
         var groupClasses = classNames(
             'date-range',
@@ -54,23 +55,50 @@ class DatesPeriod extends Component {
                                 );
                             })}
                         </select>
+                        {isMobile &&
+                            <div className="DateRangePicker DateRangePicker_1">
+                                <div>
+                                    <div className="DateRangePickerInput DateRangePickerInput_1">
+                                        <div className="DateInput DateInput_1" onClick={onClickDate}>
+                                            <div className="DateInput_input DateInput_input_1">
+                                                {startDate &&
+                                                    startDate.format('DD.MM.YYYY')
+                                                }
+                                            </div>
+                                        </div>
+                                        <div className="DateInput DateInput_1" onClick={onClickDate}>
+                                            <div className="DateInput_input DateInput_input_1">
+                                                {endDate &&
+                                                    endDate.format('DD.MM.YYYY')
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
                         <div className="select-arrow-icon"></div>
-                        <DateRangePicker
-                            startDate={startDate}
-                            endDate={endDate}
-                            startDateId={startDateId}
-                            endDateId={endDateId}
-                            onDatesChange={onDatesChange}
-                            focusedInput={this.state.focusedInput}
-                            onFocusChange={this.onFocusChange}
-                            renderDayContents={this.renderDayDesktop}
-                            enableOutsideDays={false}
-                            hideKeyboardShortcutsPanel={true}
-                            minimumNights={0}
-                            numberOfMonths={1}
-                            noBorder
-                            isOutsideRange={day => !isInclusivelyAfterDay(day, moment())}
-                        />
+                        {!isMobile &&
+                            <DateRangePicker
+                                startDate={startDate}
+                                endDate={endDate}
+                                startDateId={startDateId}
+                                endDateId={endDateId}
+                                onDatesChange={onDatesChange}
+                                focusedInput={this.state.focusedInput}
+                                onFocusChange={this.onFocusChange}
+                                renderDayContents={this.renderDayDesktop}
+                                enableOutsideDays={false}
+                                hideKeyboardShortcutsPanel={true}
+                                minimumNights={0}
+                                numberOfMonths={1}
+                                noBorder
+                                isOutsideRange={day => !isInclusivelyAfterDay(day, moment())}
+                                isDayBlocked={this.isDayBlocked}
+                            />
+                        }
+                        
                     </div>
                 </div>
             </div>
